@@ -8,10 +8,16 @@ from .errors import ApiError
 from .iterators import ListResponseIterator, WatchEvents
 
 
-#: Sentinel object indicating that the presence of a label is required with any value
-PRESENT = object()
-#: Sentinel object indicating that a label must not be present
-ABSENT = object()
+class LabelSelector(str, enum.Enum):
+    #: Indicates that the presence of a label is required
+    PRESENT = "present"
+    #: Indicates that a label must not be present
+    ABSENT = "absent"
+
+
+# Make these instances available at the top-level for backwards compatibility
+PRESENT = LabelSelector.PRESENT
+ABSENT = LabelSelector.ABSENT
 
 
 class DeletePropagationPolicy(str, enum.Enum):

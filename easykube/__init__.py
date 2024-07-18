@@ -6,5 +6,7 @@ from .kubernetes import (
     Configuration,
     ResourceSpec,
     SyncClient,
+    LabelSelector,
+    DeletePropagationPolicy,
     resources
 )

@@ -4,7 +4,9 @@ from .client import (
     ApiError,
     AsyncClient,
     ResourceSpec,
-    SyncClient
+    SyncClient,
+    LabelSelector,
+    DeletePropagationPolicy
 )
 from .config import Configuration
 from . import resources
