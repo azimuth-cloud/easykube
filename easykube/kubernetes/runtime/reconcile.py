@@ -1,5 +1,5 @@
 import dataclasses
-import typing
+import typing as t
 import uuid
 
 from ..client import AsyncClient
@@ -13,7 +13,7 @@ class Request:
     #: The name of the object to reconcile
     name: str
     #: The namespace of the object to reconcile, or none for cluster-scoped objects
-    namespace: typing.Optional[str] = None
+    namespace: t.Optional[str] = None
     #: The ID of the request
     id: str = dataclasses.field(default_factory = lambda: str(uuid.uuid4()))
 
@@ -22,7 +22,7 @@ class Request:
         """
         The key for the request.
         """
-        return f"{self.namespace}/{self.name}"
+        return f"{self.namespace}/{self.name}" if self.namespace else self.name
 
 
 @dataclasses.dataclass(frozen = True)
@@ -34,21 +34,8 @@ class Result:
     requeue: bool = False
     #: Indicates the time in seconds after which the request should be requeued
     #: If not given, a clamped exponential backoff is used
-    requeue_after: typing.Optional[int] = None
+    requeue_after: t.Optional[int] = None
 
 
-class Reconciler:
-    """
-    Base class for a reconciler.
-    """
-    def reconcile(self, client: AsyncClient, request: Request) -> Result:
-        """
-        Reconcile the given request.
-        """
-        raise NotImplementedError
-
-    def handle_exception(self, client: AsyncClient, request: Request, exc: Exception) -> Result:
-        """
-        Handle an exception that occured while processing a request.
-        """
-        raise NotImplementedError
+#: Type for a reconciliation function
+ReconcileFunc = t.Callable[[AsyncClient, Request], t.Awaitable[t.Optional[Result]]]

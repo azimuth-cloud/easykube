@@ -1,8 +1,8 @@
 import asyncio
 import collections
-import typing
+import typing as t
 
-from .reconciler import Request
+from .reconcile import Request
 
 
 class Queue:
@@ -30,16 +30,16 @@ class Queue:
     """
     def __init__(self):
         # The main queue of (request, attempt) tuples
-        self._queue: typing.List[typing.Tuple[Request, int]] = []
+        self._queue: t.List[t.Tuple[Request, int]] = []
         # A queue of futures
         # Each waiting "dequeuer" adds a future to the queue and waits on it
         # When a request becomes available, the first future in the queue is resolved, which
         # "wakes up" the corresponding dequeuer to read the request from the queue
-        self._futures: typing.Deque[asyncio.Future] = collections.deque()
+        self._futures: t.Deque[asyncio.Future] = collections.deque()
         # A map of request key to request ID for active requests
-        self._active: typing.Dict[str, str] = {}
+        self._active: t.Dict[str, str] = {}
         # A map of request key to handles for requeue callbacks
-        self._handles: typing.Dict[str, asyncio.TimerHandle] = {}
+        self._handles: t.Dict[str, asyncio.TimerHandle] = {}
 
     def _wakeup_next_dequeue(self):
         # Wake up the next eligible dequeuer by resolving the first future in the queue
@@ -49,7 +49,7 @@ class Queue:
                 future.set_result(None)
                 break
 
-    async def dequeue(self) -> typing.Tuple[Request, int]:
+    async def dequeue(self) -> t.Tuple[Request, int]:
         """
         Remove and return a request from the queue.
 

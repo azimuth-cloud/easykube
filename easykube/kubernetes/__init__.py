@@ -1,12 +1,16 @@
 from .client import (
     PRESENT,
     ABSENT,
+    Api,
     ApiError,
     AsyncClient,
+    DeletePropagationPolicy,
+    LabelSelector,
+    ListResponseIterator,
+    Resource,
     ResourceSpec,
     SyncClient,
-    LabelSelector,
-    DeletePropagationPolicy
+    WatchEvents
 )
 from .config import Configuration
 from . import resources
