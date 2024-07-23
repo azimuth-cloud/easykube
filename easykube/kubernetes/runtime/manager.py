@@ -5,6 +5,7 @@ from ..client import AsyncClient, LabelSelector
 
 from .controller import Controller, ReconcileFunc
 from .util import run_tasks
+from .worker_pool import WorkerPool
 
 
 LabelValue = t.Union[LabelSelector, t.List[str], str]
@@ -19,10 +20,11 @@ class Manager:
         *, 
         namespace: t.Optional[str] = None,
         worker_count: int = 10,
+        worker_pool: t.Optional[WorkerPool] = None,
         requeue_max_backoff: int = 120
     ):
         self._namespace = namespace
-        self._worker_count = worker_count
+        self._worker_pool = worker_pool or WorkerPool(worker_count)
         self._requeue_max_backoff = requeue_max_backoff
         self._controllers: t.List[Controller] = []
 
@@ -41,7 +43,7 @@ class Manager:
         *,
         labels: t.Optional[t.Dict[str, LabelValue]] = None,
         namespace: t.Optional[str] = None,
-        worker_count: t.Optional[int] = None,
+        worker_pool: t.Optional[WorkerPool] = None,
         requeue_max_backoff: t.Optional[int] = None
     ) -> Controller:
         """
@@ -53,7 +55,7 @@ class Manager:
             reconcile_func,
             labels = labels,
             namespace = namespace or self._namespace,
-            worker_count = worker_count or self._worker_count,
+            worker_pool = worker_pool or self._worker_pool,
             requeue_max_backoff = requeue_max_backoff or self._requeue_max_backoff
         )
         self.register_controller(controller)
@@ -64,9 +66,13 @@ class Manager:
         Run all the controllers registered with the manager using the given client.
         """
         assert len(self._controllers) > 0, "no controllers registered"
-
-        # Run a task for each controller
-        await run_tasks([
-            asyncio.create_task(controller.run(client))
-            for controller in self._controllers
-        ])
+        await run_tasks(
+            [
+                # Run a task for each controller and one for the worker pool
+                asyncio.create_task(controller.run(client))
+                for controller in self._controllers
+            ] + [
+                # Run the worker pool
+                asyncio.create_task(self._worker_pool.run()),
+            ]
+        )

@@ -41,8 +41,29 @@ class Queue:
         # A map of request key to handles for requeue callbacks
         self._handles: t.Dict[str, asyncio.TimerHandle] = {}
 
+    def _eligible_idx(self):
+        """
+        Returns the index of the first request in the queue that is eligible to be dequeued.
+        """
+        return next(
+            (
+                i
+                for i, (req, _) in enumerate(self._queue)
+                if req.key not in self._active
+            ),
+            -1
+        )
+
+    def has_eligible_request(self):
+        """
+        Indicates if the queue has a request that is eligible to be dequeued.
+        """
+        return self._eligible_idx() >= 0
+
     def _wakeup_next_dequeue(self):
-        # Wake up the next eligible dequeuer by resolving the first future in the queue
+        """
+        Wake up the next eligible dequeuer by resolving the first future in the queue.
+        """
         while self._futures:
             future = self._futures.popleft()
             if not future.done():
@@ -57,14 +78,7 @@ class Queue:
         """
         while True:
             # Find the index of the first request in the queue for which there is no active task
-            idx = next(
-                (
-                    i
-                    for i, (req, _) in enumerate(self._queue)
-                    if req.key not in self._active
-                ),
-                -1
-            )
+            idx = self._eligible_idx()
             # If there is such a request, extract it from the queue and return it
             if idx >= 0:
                 request, attempt = self._queue.pop(idx)
