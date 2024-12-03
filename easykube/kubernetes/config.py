@@ -2,8 +2,10 @@ import atexit
 import base64
 import os
 import pathlib
+import ssl
 import tempfile
 
+import certifi
 import yaml
 
 from .client import AsyncClient, SyncClient
@@ -78,37 +80,50 @@ class Configuration:
         Return a configuration for the given kubeconfig data, which can be bytes or str.
         """
         kubeconfig = yaml.safe_load(data)
+        # Extract the cluster and user information from the current context
         context = next(
             c["context"]
             for c in kubeconfig["contexts"]
             if c["name"] == kubeconfig["current-context"]
         )
-        if "namespace" in context:
-            kwargs.setdefault("default_namespace", context["namespace"])
         cluster = next(
             c["cluster"]
             for c in kubeconfig["clusters"]
             if c["name"] == context["cluster"]
         )
-        kwargs.setdefault("base_url", cluster["server"])
-        if "insecure-skip-tls-verify" in cluster:
-            kwargs.setdefault("verify", False)
-        else:
-            ca_file = file_or_data(cluster, "certificate-authority")
-            if ca_file:
-                kwargs.setdefault("verify", ca_file)
-        if "proxy-url" in cluster:
-            kwargs.setdefault("proxy", cluster["proxy-url"])
         user = next(
             u["user"]
             for u in kubeconfig["users"]
             if u["name"] == context["user"]
         )
+        # Populate the kwargs
+        if "namespace" in context:
+            kwargs.setdefault("default_namespace", context["namespace"])
+        kwargs.setdefault("base_url", cluster["server"])
+        if "proxy-url" in cluster:
+            kwargs.setdefault("proxy", cluster["proxy-url"])
+        # Configure the SSL context
+        if "insecure-skip-tls-verify" in cluster:
+            ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+            ssl_context.check_hostname = False
+            ssl_context.verify_mode = ssl.CERT_NONE
+        else:
+            ssl_context = ssl.create_default_context()
+            ca_file = file_or_data(cluster, "certificate-authority")
+            if ca_file:
+                ssl_context.load_verify_locations(ca_file)
+            elif os.environ.get("SSL_CERT_FILE"):
+                ssl_context.load_verify_locations(os.environ["SSL_CERT_FILE"])
+            elif os.environ.get("SSL_CERT_DIR"):
+                ssl_context.load_verify_locations(capath = os.environ["SSL_CERT_DIR"])
+            else:
+                ssl_context.load_verify_locations(certifi.where())
         client_cert = file_or_data(user, "client-certificate")
         if client_cert:
-            kwargs.setdefault("cert", (client_cert, file_or_data(user, "client-key")))
+            ssl_context.load_cert_chain(client_cert, file_or_data(user, "client-key"))
         else:
             raise ConfigurationError("Authentication method not supported")
+        kwargs["verify"] = ssl_context
         return cls(**kwargs)
 
     @classmethod
@@ -133,7 +148,7 @@ class Configuration:
         kwargs.setdefault("base_url", f"https://{server_host}:{server_port}")
         # Check if the certificate file exists
         if os.path.isfile(cls.SA_CERT_FILENAME):
-            kwargs.setdefault("verify", cls.SA_CERT_FILENAME)
+            kwargs.setdefault("verify", ssl.create_default_context(cafile = cls.SA_CERT_FILENAME))
         else:
             raise ConfigurationError("Service account CA file not present")
         try:
