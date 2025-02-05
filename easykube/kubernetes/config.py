@@ -1,4 +1,5 @@
 import atexit
+import ipaddress
 import base64
 import os
 import pathlib
@@ -145,6 +146,8 @@ class Configuration:
         server_port = os.environ.get(cls.SA_PORT_ENV_NAME)
         if not server_host or not server_port:
             raise ConfigurationError("Server host/port not configured")
+        if ipaddress.ip_address(server_host).version == 6:
+            server_host = f"[{server_host}]"
         kwargs.setdefault("base_url", f"https://{server_host}:{server_port}")
         # Check if the certificate file exists
         if os.path.isfile(cls.SA_CERT_FILENAME):
