@@ -1,5 +1,6 @@
 import copy
 import enum
+import typing as t
 
 from ... import rest
 from ...flow import flow
@@ -8,10 +9,30 @@ from .errors import ApiError
 from .iterators import ListResponseIterator, WatchEvents
 
 
-#: Sentinel object indicating that the presence of a label is required with any value
-PRESENT = object()
-#: Sentinel object indicating that a label must not be present
-ABSENT = object()
+class LabelSelectorSpecial(str, enum.Enum):
+    """
+    Enumeration of special label selectors.
+    """
+    #: Indicates that the presence of a label is required
+    PRESENT = "__PRESENT__"
+    #: Indicates that a label must not be present, e.g. a "!" selector
+    ABSENT = "__ABSENT__"
+
+
+# Make these available at the top level for backards compatibility
+PRESENT = LabelSelectorSpecial.PRESENT
+ABSENT = LabelSelectorSpecial.ABSENT
+
+
+#: Type for a label selector value
+LabelSelectorValue = t.Union[
+    # Present or absent, as above
+    LabelSelectorSpecial,
+    # List of values, produces an "in" selector
+    t.Sequence[str],
+    # Single value, produces an "=" selector
+    str
+]
 
 
 class DeletePropagationPolicy(str, enum.Enum):
@@ -47,9 +68,9 @@ class Resource(rest.Resource):
             else:
                 label_selectors = []
             for k, v in params.pop("labels").items():
-                if v is PRESENT:
+                if v == PRESENT:
                     label_selectors.append(k)
-                elif v is ABSENT:
+                elif v == ABSENT:
                     label_selectors.append(f"!{k}")
                 elif isinstance(v, (list, tuple)):
                     values_text = v.join(",")
