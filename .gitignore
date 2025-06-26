@@ -2,3 +2,16 @@ __pycache__
 *.pyc
 *.egg-info
 .python-version
+build
+
+# Unit test / coverage reports
+cover/
+.coverage*
+!.coveragerc
+.tox
+.stestr
+.venv
+
+# pbr generates these
+AUTHORS
+ChangeLog
