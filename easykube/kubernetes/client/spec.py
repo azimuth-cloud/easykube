@@ -1,5 +1,4 @@
 import dataclasses
-import typing
 
 from .resource import Resource
 
@@ -9,14 +8,15 @@ class ResourceSpec:
     """
     Specification for a Kubernetes API resource.
     """
+
     #: The API version, including group, of the resource
     api_version: str
     #: The name of the resource
     name: str
     #: The kind of the resource
-    kind: typing.Optional[str] = None
+    kind: str | None = None
     #: Whether or not the resource is namespaced
-    namespaced: typing.Optional[bool] = None
+    namespaced: bool | None = None
 
     def __call__(self, client):
         """

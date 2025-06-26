@@ -6,6 +6,7 @@ class SyncExecutor:
     """
     Flow executor for synchronous contexts.
     """
+
     def execute_flow(self, flow):
         """
         Executes a flow and returns the result.
@@ -37,6 +38,7 @@ class AsyncExecutor:
     """
     Flow executor for asynchronous contexts.
     """
+
     async def execute_flow(self, flow):
         """
         Executes a flow and returns an awaitable containing the result.
@@ -70,6 +72,7 @@ class Flowable:
     """
     Base classes for objects that can support flows.
     """
+
     __flow_executor__ = None
 
     @property
@@ -82,9 +85,10 @@ class Flowable:
 
 def flow(method):
     """
-    Decorator that marks a method of a flowable as a flow that can be resolved synchronously
-    or asynchronously depending on the executor that is in use.
+    Decorator that marks a method of a flowable as a flow that can be resolved
+    synchronously or asynchronously depending on the executor that is in use.
     """
+
     @functools.wraps(method)
     def wrapper(flowable, *args, **kwargs):
         gen = method(flowable, *args, **kwargs)
@@ -92,4 +96,5 @@ def flow(method):
             return flowable.get_flow_executor().execute_flow(gen)
         else:
             return gen
+
     return wrapper

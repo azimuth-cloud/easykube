@@ -4,8 +4,7 @@ import logging
 
 import httpx
 
-from ..flow import Flowable, flow, AsyncExecutor, SyncExecutor
-
+from ..flow import AsyncExecutor, Flowable, SyncExecutor, flow  # noqa: TID252
 
 logger = logging.getLogger(__name__)
 
@@ -14,7 +13,8 @@ class BaseClient(Flowable):
     """
     Base class for sync and async REST clients.
     """
-    def __init__(self, /, json_encoder = None, **kwargs):
+
+    def __init__(self, /, json_encoder=None, **kwargs):
         super().__init__(**kwargs)
         self._json_encoder = json_encoder
 
@@ -26,7 +26,7 @@ class BaseClient(Flowable):
         content = kwargs.get("content")
         json_obj = kwargs.pop("json", None)
         if content is None and json_obj is not None:
-            kwargs["content"] = json.dumps(json_obj, default = self._json_encoder)
+            kwargs["content"] = json.dumps(json_obj, default=self._json_encoder)
         return (yield super().request(method, url, **kwargs))
 
     @flow
@@ -46,7 +46,8 @@ class BaseClient(Flowable):
         try:
             response.raise_for_status()
         except httpx.HTTPStatusError as exc:
-            # Make sure that the response is read while inside any required context managers
+            # Make sure that the response is read while inside any required context
+            # managers
             if self.is_async:
                 yield exc.response.aread()
             else:
@@ -67,6 +68,7 @@ class SyncClient(BaseClient, httpx.Client):
     """
     Class for a sync REST client.
     """
+
     __flow_executor__ = SyncExecutor()
 
 
@@ -74,13 +76,14 @@ class AsyncClient(BaseClient, httpx.AsyncClient):
     """
     Class for a REST client.
     """
+
     __flow_executor__ = AsyncExecutor()
 
     async def _send_single_request(self, request):
         # anyio.fail_after seems to raise a TimeoutError even when the task is cancelled
         # from the outside rather than because it reaches the deadline
-        # This is then translated into a PoolTimeout by httpx, even though the connection
-        # pool has plenty of availability
+        # This is then translated into a PoolTimeout by httpx, even though the
+        # connection pool has plenty of availability
         # We can prevent this while still allowing the request to appear cancelled from
         # the outside by shielding the request coroutine
         # This will mean that the request will continue until it is fulfilled, even if

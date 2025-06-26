@@ -1,6 +1,6 @@
 import atexit
-import ipaddress
 import base64
+import ipaddress
 import os
 import pathlib
 import ssl
@@ -28,7 +28,7 @@ def cleanup_tempfile(path):
         pass
 
 
-def file_or_data(obj, file_key, data_key = None):
+def file_or_data(obj, file_key, data_key=None):
     """
     Returns the path to a file containing the data for the specified key.
     """
@@ -40,7 +40,7 @@ def file_or_data(obj, file_key, data_key = None):
         os.close(fd)
         # Register an exit handler to delete the file
         atexit.register(cleanup_tempfile, path)
-        with open(path, 'wb') as fd:
+        with open(path, "wb") as fd:
             fd.write(base64.standard_b64decode(obj[data_key]))
         return path
     else:
@@ -51,6 +51,7 @@ class Configuration:
     """
     Configuration object that produces clients.
     """
+
     SA_HOST_ENV_NAME = "KUBERNETES_SERVICE_HOST"
     SA_PORT_ENV_NAME = "KUBERNETES_SERVICE_PORT"
     SA_TOKEN_FILENAME = "/var/run/secrets/kubernetes.io/serviceaccount/token"
@@ -93,11 +94,9 @@ class Configuration:
             if c["name"] == context["cluster"]
         )
         user = next(
-            u["user"]
-            for u in kubeconfig["users"]
-            if u["name"] == context["user"]
+            u["user"] for u in kubeconfig["users"] if u["name"] == context["user"]
         )
-        # Populate the kwargs
+        # Populate the kwargs
         if "namespace" in context:
             kwargs.setdefault("default_namespace", context["namespace"])
         kwargs.setdefault("base_url", cluster["server"])
@@ -116,7 +115,7 @@ class Configuration:
             elif os.environ.get("SSL_CERT_FILE"):
                 ssl_context.load_verify_locations(os.environ["SSL_CERT_FILE"])
             elif os.environ.get("SSL_CERT_DIR"):
-                ssl_context.load_verify_locations(capath = os.environ["SSL_CERT_DIR"])
+                ssl_context.load_verify_locations(capath=os.environ["SSL_CERT_DIR"])
             else:
                 ssl_context.load_verify_locations(certifi.where())
         client_cert = file_or_data(user, "client-certificate")
@@ -151,7 +150,9 @@ class Configuration:
         kwargs.setdefault("base_url", f"https://{server_host}:{server_port}")
         # Check if the certificate file exists
         if os.path.isfile(cls.SA_CERT_FILENAME):
-            kwargs.setdefault("verify", ssl.create_default_context(cafile = cls.SA_CERT_FILENAME))
+            kwargs.setdefault(
+                "verify", ssl.create_default_context(cafile=cls.SA_CERT_FILENAME)
+            )
         else:
             raise ConfigurationError("Service account CA file not present")
         try:
@@ -160,7 +161,9 @@ class Configuration:
         except OSError:
             raise ConfigurationError("Could not read service account token")
         else:
-            kwargs.setdefault("headers", {}).setdefault("authorization", f"bearer {token}")
+            kwargs.setdefault("headers", {}).setdefault(
+                "authorization", f"bearer {token}"
+            )
         return cls(**kwargs)
 
     @classmethod

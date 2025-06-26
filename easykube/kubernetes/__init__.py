@@ -1,10 +1,10 @@
-from .client import (
-    PRESENT,
+from . import resources  # noqa: F401
+from .client import (  # noqa: F401
     ABSENT,
+    PRESENT,
     ApiError,
     AsyncClient,
     ResourceSpec,
-    SyncClient
+    SyncClient,
 )
-from .config import Configuration
-from . import resources
+from .config import Configuration  # noqa: F401

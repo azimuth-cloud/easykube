@@ -1,5 +1,4 @@
-from ...flow import Flowable, flow
-
+from ...flow import Flowable, flow  # noqa: TID252
 from .resource import Resource
 
 
@@ -7,6 +6,7 @@ class Api(Flowable):
     """
     Class for a Kubernetes API.
     """
+
     def __init__(self, client, api_version):
         self._client = client
         self._api_version = api_version
@@ -25,14 +25,14 @@ class Api(Flowable):
         """
         return self._api_version
 
-    def _ensure_resources(self, refresh_cache = False):
+    def _ensure_resources(self, refresh_cache=False):
         """
         Ensures that the resources have been loaded.
         """
         if self._resources is None or refresh_cache:
             prefix = "/apis" if "/" in self._api_version else "/api"
             response = yield self._client.get(f"{prefix}/{self._api_version}")
-            self._resources = { r["name"]: r for r in response.json()["resources"] }
+            self._resources = {r["name"]: r for r in response.json()["resources"]}
         return self._resources
 
     @flow
@@ -43,7 +43,7 @@ class Api(Flowable):
         resources = yield self._ensure_resources()
         return resources.values()
 
-    def _resource(self, name, refresh_cache = False):
+    def _resource(self, name, refresh_cache=False):
         resources = yield self._ensure_resources(refresh_cache)
         # First try a lookup by plural name
         try:
@@ -63,7 +63,7 @@ class Api(Flowable):
             self._api_version,
             resource["name"],
             resource["kind"],
-            resource["namespaced"]
+            resource["namespaced"],
         )
 
     @flow

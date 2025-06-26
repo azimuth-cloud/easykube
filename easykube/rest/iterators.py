@@ -2,8 +2,7 @@ import contextlib
 import json
 import logging
 
-from ..flow import Flowable, flow
-
+from ..flow import Flowable, flow  # noqa: TID252
 
 logger = logging.getLogger(__name__)
 
@@ -12,9 +11,11 @@ class ListResponseIterator(Flowable):
     """
     Iterator for list responses.
 
-    Can be used as either a sync or async iterator depending on the client that is given.
+    Can be used as either a sync or async iterator depending on the client that is
+    given.
     """
-    class StopIteration(Exception):
+
+    class StopIteration(Exception):  # noqa: A001,N818
         """
         Exception raised to indicate that a list response has finished iterating.
         """
@@ -24,7 +25,7 @@ class ListResponseIterator(Flowable):
         self._resource = resource
         self._data = []
         self._next_index = 0
-        self._next_url, self._next_params = resource._prepare_path(params = params)
+        self._next_url, self._next_params = resource._prepare_path(params=params)
 
     def get_flow_executor(self):
         """
@@ -36,8 +37,8 @@ class ListResponseIterator(Flowable):
         """
         Extracts a list of instances from a list response.
 
-        By default, this is deferred to the resource method so cases where a custom iterator
-        is required are rare.
+        By default, this is deferred to the resource method so cases where a custom
+        iterator is required are rare.
         """
         return self._resource._extract_list(response)
 
@@ -45,8 +46,8 @@ class ListResponseIterator(Flowable):
         """
         Return a (URL, params) tuple for the next page or None if there is no next page.
 
-        By default, this is deferred to the resource method so cases where a custom iterator
-        is required are rare.
+        By default, this is deferred to the resource method so cases where a custom
+        iterator is required are rare.
         """
         return self._resource._extract_next_page(response)
 
@@ -58,10 +59,13 @@ class ListResponseIterator(Flowable):
         yield self._resource._ensure_initialised()
         # If we have run out of data, try to load some more
         if self._next_index >= len(self._data) and self._next_url:
-            response = yield self._client.get(self._next_url, params = self._next_params)
+            response = yield self._client.get(self._next_url, params=self._next_params)
             self._data = self._extract_list(response)
             self._next_index = 0
-            self._next_url, self._next_params = self._extract_next_page(response) or (None, None)
+            self._next_url, self._next_params = self._extract_next_page(response) or (
+                None,
+                None,
+            )
         # Return the item at the next index before incrementing it
         try:
             next_item = self._data[self._next_index]
@@ -96,7 +100,8 @@ class StreamIterator:
 
     Can be used as a sync or async iterator depending on the client that is given.
     """
-    class SuppressItem(Exception):
+
+    class SuppressItem(Exception):  # noqa: N818
         """
         Exception that can be raised to suppress an item from being yielded.
         """
@@ -119,18 +124,18 @@ class StreamIterator:
         """
         Returns the request for the iterator.
         """
-        return self._client.build_request(self._method, self._url, **self._request_kwargs)
+        return self._client.build_request(
+            self._method, self._url, **self._request_kwargs
+        )
 
     @contextlib.contextmanager
     def _send(self):
         """
-        Context manager that synchronously sends a request and yields a response, ensuring
-        that the current response is updated.
+        Context manager that synchronously sends a request and yields a response,
+        ensuring that the current response is updated.
         """
         self._response = self._client.send(
-            self._request(),
-            stream = True,
-            **self._send_kwargs
+            self._request(), stream=True, **self._send_kwargs
         )
         try:
             yield self._response
@@ -140,13 +145,11 @@ class StreamIterator:
     @contextlib.asynccontextmanager
     async def _send_async(self):
         """
-        Context manager that asynchronously sends a request and yields a response, ensuring
-        that the current response is updated.
+        Context manager that asynchronously sends a request and yields a response,
+        ensuring that the current response is updated.
         """
         self._response = await self._client.send(
-            self._request(),
-            stream = True,
-            **self._send_kwargs
+            self._request(), stream=True, **self._send_kwargs
         )
         try:
             yield self._response
@@ -246,7 +249,8 @@ class ByteStreamIterator(StreamIterator):
     Chunks correspond to fixed-size chunks of a byte-stream, and are received by
     _process_chunk as bytes.
     """
-    def __init__(self, client, method, url, /, chunk_size = None, **kwargs):
+
+    def __init__(self, client, method, url, /, chunk_size=None, **kwargs):
         super().__init__(client, method, url, **kwargs)
         self._chunk_size = chunk_size
 
@@ -269,6 +273,7 @@ class TextStreamIterator(StreamIterator):
 
     Chunks correspond to lines of the response.
     """
+
     def _chunk_iterator(self, response):
         """
         Returns a synchronous chunk iterator for the response.

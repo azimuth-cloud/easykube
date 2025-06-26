@@ -1,8 +1,7 @@
 import httpx
 
-from ... import rest
-from ...flow import flow
-
+from ... import rest  # noqa: TID252
+from ...flow import flow  # noqa: TID252
 from .api import Api
 from .errors import ApiError
 
@@ -11,13 +10,14 @@ class BaseClient:
     """
     Base class for sync and async clients.
     """
+
     def __init__(
         self,
         /,
         # This is the name of the field manager for server-side apply
-        default_field_manager = "easykube",
-        default_namespace = "default",
-        **kwargs
+        default_field_manager="easykube",
+        default_namespace="default",
+        **kwargs,
     ):
         super().__init__(**kwargs)
         self.default_field_manager = default_field_manager
@@ -36,7 +36,8 @@ class BaseClient:
             raise ApiError(source)
 
     def build_request(self, method, url, **kwargs):
-        # For patch requests, set the content-type as merge-patch unless otherwise specified
+        # For patch requests, set the content-type as merge-patch unless otherwise
+        # specified
         if method.lower() == "patch":
             headers = kwargs.get("headers") or {}
             headers.setdefault("Content-Type", "application/merge-patch+json")
@@ -62,7 +63,7 @@ class BaseClient:
             self.preferred_versions[group] = api_version
         return self.api(self.preferred_versions[group])
 
-    def _resource_for_object(self, object):
+    def _resource_for_object(self, object):  # noqa: A002
         """
         Returns a resource for the given object.
         """
@@ -72,46 +73,46 @@ class BaseClient:
         return (yield self.api(api_version).resource(kind))
 
     @flow
-    def create_object(self, object):
+    def create_object(self, object):  # noqa: A002
         """
         Create the given object.
         """
         resource = yield self._resource_for_object(object)
         namespace = object["metadata"].get("namespace")
-        return (yield resource.create(object, namespace = namespace))
+        return (yield resource.create(object, namespace=namespace))
 
     @flow
-    def replace_object(self, object):
+    def replace_object(self, object):  # noqa: A002
         """
         Replace the given object with the specified state.
         """
         resource = yield self._resource_for_object(object)
         name = object["metadata"]["name"]
         namespace = object["metadata"].get("namespace")
-        return (yield resource.replace(name, object, namespace = namespace))
+        return (yield resource.replace(name, object, namespace=namespace))
 
     @flow
-    def patch_object(self, object, patch):
+    def patch_object(self, object, patch):  # noqa: A002
         """
         Apply the given patch to the specified object.
         """
         resource = yield self._resource_for_object(object)
         name = object["metadata"]["name"]
         namespace = object["metadata"].get("namespace")
-        return (yield resource.patch(name, patch, namespace = namespace))
+        return (yield resource.patch(name, patch, namespace=namespace))
 
     @flow
-    def delete_object(self, object):
+    def delete_object(self, object):  # noqa: A002
         """
         Delete the specified object.
         """
         resource = yield self._resource_for_object(object)
         name = object["metadata"]["name"]
         namespace = object["metadata"].get("namespace")
-        return (yield resource.delete(name, namespace = namespace))
+        return (yield resource.delete(name, namespace=namespace))
 
     @flow
-    def apply_object(self, object, /, field_manager = None, force = False):
+    def apply_object(self, object, /, field_manager=None, force=False):  # noqa: A002
         """
         Applies the given object using server-side apply.
 
@@ -124,21 +125,21 @@ class BaseClient:
             yield resource.server_side_apply(
                 name,
                 object,
-                field_manager = field_manager,
-                namespace = namespace,
-                force = force
+                field_manager=field_manager,
+                namespace=namespace,
+                force=force,
             )
         )
 
     @flow
-    def client_side_apply_object(self, object):
+    def client_side_apply_object(self, object):  # noqa: A002
         """
         Create or update the given object, equivalent to "kubectl apply".
         """
         resource = yield self._resource_for_object(object)
         name = object["metadata"]["name"]
         namespace = object["metadata"].get("namespace")
-        return (yield resource.create_or_replace(name, object, namespace = namespace))
+        return (yield resource.create_or_replace(name, object, namespace=namespace))
 
 
 class SyncClient(BaseClient, rest.SyncClient):
