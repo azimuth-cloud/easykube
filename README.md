@@ -1,6 +1,6 @@
 # easykube
 
-A simple Python client for Kubernetes, providing both synchronous and asychronous implementations.
+A simple Python client for Kubernetes, providing both synchronous and asynchronous implementations.
 
 ## Creating a client
 
