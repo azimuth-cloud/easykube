@@ -1,0 +1,55 @@
+requires = ["tox>=4.65", "tox-uv>=1.36"]
+env_list = [
+    "lint",
+    { prefix = "3.", start = 10, stop = 15 },
+    "mypy",
+    "coverage",
+]
+
+[env_run_base]
+runner = "uv-venv-lock-runner"
+dependency_groups = ["dev"]
+extras = ["socks"]
+commands = [
+    ["pytest", "--cov=easykube", "--cov-report=", { replace = "posargs", extend = true }],
+]
+
+[env_run_base.set_env]
+PYTHONWARNINGS = "default::DeprecationWarning"
+COVERAGE_FILE = "{tox_root}/.coverage.{env_name}"
+
+[env.lint]
+description = "Run ruff and codespell"
+commands = [
+    ["ruff", "check", "{tox_root}"],
+    ["ruff", "format", "{tox_root}", "--check"],
+    ["codespell", "{tox_root}"],
+]
+
+# Not in env_list, so that neither CI nor a plain `tox` run rewrites files
+[env.autofix]
+description = "Apply ruff and codespell fixes"
+commands = [
+    ["ruff", "format", "{tox_root}"],
+    ["codespell", "{tox_root}", "-w"],
+    ["ruff", "check", "{tox_root}", "--fix"],
+]
+
+[env.mypy]
+description = "Type check the package and its tests"
+commands = [["mypy", "easykube", { replace = "posargs", extend = true }]]
+
+# Combine the coverage from all the test envs, so a line counts as covered if
+# any Python version runs it
+[env.coverage]
+description = "Combine coverage from the test envs and report diff coverage"
+depends = ["3.*"]
+pass_env = ["DIFF_COVER_COMPARE_BRANCH"]
+set_env = { COVERAGE_FILE = "{tox_root}/.coverage" }
+commands = [
+    ["coverage", "combine"],
+    ["coverage", "report"],
+    ["coverage", "xml", "-o", "{tox_root}/coverage.xml"],
+    # In GitHub Actions, the annotations mark uncovered lines on the PR's diff
+    ["diff-cover", "{tox_root}/coverage.xml", "--compare-branch", "{env:DIFF_COVER_COMPARE_BRANCH:origin/main}", "--format", "markdown:{tox_root}/diff-cover.md,github-annotations:warning"],
+]

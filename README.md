@@ -70,7 +70,9 @@ sync_pod_logs = sync_client.api("v1").resource("pods/log")
 async_pod_logs = await async_client.api("v1").resource("pods/log")
 #   e.g. the status of a custom resource when writing controllers
 sync_custom_status = sync_client.api("example.com/v1").resource("myresource/status")
-async_custom_status = await async_client.api("example.com/v1").resource("myresource/status")
+async_custom_status = await async_client.api("example.com/v1").resource(
+    "myresource/status"
+)
 ```
 
 ### Listing objects
@@ -93,7 +95,7 @@ for obj in sync_resource.list(
         "label4": easykube.ABSENT,
     },
     # Additional kwargs arguments are passed as URL parameters
-    **kwargs
+    **kwargs,
 ):
     do_something(obj)
 
@@ -123,7 +125,7 @@ obj = sync_resource.fetch(
     # The namespace that the object is in, defaults to the client's default namespace
     namespace="myns",
     # Additional kwargs arguments are passed as URL parameters
-    **kwargs
+    **kwargs,
 )
 obj = await async_resource.fetch(...)
 ```
@@ -193,7 +195,7 @@ obj = sync_resource.delete(
     namespace="myns",
     # The propagation policy to use
     # One of BACKGROUND, FOREGROUND or ORPHAN
-    propagation_policy=easykube.DeletePropagationPolicy.BACKGROUND
+    propagation_policy=easykube.DeletePropagationPolicy.BACKGROUND,
 )
 obj = await async_resource.delete(...)
 
@@ -218,8 +220,8 @@ The events that are produced have the format:
 {
     "type": "ADDED" | "MODIFIED" | "DELETED",
     "object": {
-        # ... the state of the object when the event was produced ...
-    }
+        # ... the state of the object when the event was produced ...
+    },
 }
 ```
 
@@ -293,8 +295,8 @@ obj = await async_client.delete_object(obj)
 # Apply an object using server-side apply
 # https://kubernetes.io/docs/reference/using-api/server-side-apply/
 #####
-obj = sync_client.apply_object(obj, force = True)
-obj = await async_client.apply_object(obj, force = True)
+obj = sync_client.apply_object(obj, force=True)
+obj = await async_client.apply_object(obj, force=True)
 
 #####
 # Apply an object from the client-side using a "create-or-update" pattern
@@ -303,3 +305,17 @@ obj = await async_client.apply_object(obj, force = True)
 obj = sync_client.client_side_apply_object(obj)
 obj = await async_client.client_side_apply_object(obj)
 ```
+
+## Running tests
+
+The tests use [pytest](https://docs.pytest.org) and are run with
+[tox](https://tox.wiki) via [uv](https://docs.astral.sh/uv/):
+
+```sh
+uv run --locked tox                         # lint, tests, mypy and coverage
+uv run --locked tox -e 3.14 -- -k <expr>    # run selected tests only
+uv run --locked tox -e autofix              # apply ruff and codespell fixes
+```
+
+The `coverage` environment prints a coverage report and the coverage of lines
+changed since `origin/main`.
