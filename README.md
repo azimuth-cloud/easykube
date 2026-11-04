@@ -319,3 +319,5 @@ uv run --locked tox -e autofix              # apply ruff and codespell fixes
 
 The `coverage` environment prints a coverage report and the coverage of lines
 changed since `origin/main`.
+
+Tests live in `easykube/tests/`. Please add tests alongside your changes.
