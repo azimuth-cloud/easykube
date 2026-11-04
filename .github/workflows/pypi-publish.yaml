@@ -16,16 +16,11 @@ jobs:
       - name: Check out the repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - name: Set up Python
-        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
-        with:
-          python-version: "3.x"
-
-      - name: Install pypa/build
-        run: python3 -m pip install build --user
+      - name: Set up uv
+        uses: astral-sh/setup-uv@eb1897b8dc4b5d5bfe39a428a8f2304605e0983c # v7.0.0
 
       - name: Build a binary wheel and a source tarball
-        run: python3 -m build --sdist --wheel --outdir dist/
+        run: uv build --sdist --wheel --out-dir dist/
 
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@7245906fb61fa33a13554f9d5fb856fe61758086 # v1.14.3

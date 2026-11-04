@@ -5,13 +5,12 @@ __pycache__
 build
 
 # Unit test / coverage reports
-cover/
 .coverage*
 !.coveragerc
 .tox
-.stestr
 .venv
-
-# pbr generates these
-AUTHORS
-ChangeLog
+.pytest_cache
+.mypy_cache
+.ruff_cache
+coverage.xml
+diff-cover.md

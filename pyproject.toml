@@ -1,15 +1,56 @@
-[build-system]
-requires = ["setuptools>=42", "wheel", "setuptools_scm[toml]>=3.4"]
-build-backend = "setuptools.build_meta"
+[project]
+name = "easykube"
+dynamic = ["version"]
+description = "Simple, asynchronous Python client for Kubernetes."
+readme = "README.md"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+authors = [{ name = "Matt Pryor", email = "matt@stackhpc.com" }]
+requires-python = ">=3.10"
+dependencies = [
+    "certifi",
+    "httpx>=0.23",
+    "pyyaml>=6",
+]
 
-[tool.setuptools_scm]
+[project.urls]
+Homepage = "https://github.com/azimuth-cloud/easykube"
+
+[project.optional-dependencies]
+socks = [
+    "socksio>=1",
+]
+
+[dependency-groups]
+dev = [
+    "codespell>=2.4.3",
+    "coverage>=7.16.2",
+    "diff-cover>=10.6.0",
+    "mypy>=2.4.0",
+    "pytest>=9",
+    "pytest-cov>=7.1.0",
+    "ruff>=0.17.3",
+    "tox>=4.65.0",
+    "tox-uv>=1.36.1",
+    "types-pyyaml>=6.0.12.20260906",
+]
+
+[tool.uv]
+exclude-newer = "7 days"
+
+# Use hatchling instead of uv's own build backend, because uv cannot dynamically
+# get the version from git.
+[build-system]
+requires = ["hatchling", "hatch-vcs"]
+build-backend = "hatchling.build"
+
+[tool.hatch.version]
+source = "vcs"
+fallback-version = "0.0.1+unknown"
 
 [tool.ruff]
 line-length = 88
 target-version = "py310"
-
-[tool.ruff.format]
-line-ending = "lf"
 
 [tool.ruff.lint]
 select = [
@@ -34,9 +75,6 @@ select = [
     # pep8 naming
     "N",
 ]
-ignore = [
-    "UP038", # deprecated
-]
 
 [tool.mypy]
 follow_imports = "silent"
@@ -44,6 +82,32 @@ warn_redundant_casts = true
 warn_unused_ignores = true
 check_untyped_defs = true
 
+# The tests must be fully annotated
+[[tool.mypy.overrides]]
+module = ["easykube.tests.*"]
+disallow_untyped_defs = true
+
+# Modules that do not pass mypy yet go here, so that the tests are still checked
+# against them. Remove entries once they pass.
+[[tool.mypy.overrides]]
+module = [
+    "easykube.kubernetes.client.client",
+    "easykube.kubernetes.client.resource",
+    "easykube.kubernetes.config",
+    "easykube.rest.client",
+]
+ignore_errors = true
+
 [tool.ruff.lint.mccabe]
 # Flag errors (`C901`) whenever the complexity level exceeds 5.
 max-complexity = 15
+
+[tool.pytest]
+testpaths = ["easykube/tests"]
+strict = true
+
+[tool.coverage.run]
+relative_files = true
+
+[tool.codespell]
+skip = "./.tox,./.venv,./uv.lock,./coverage.xml"
