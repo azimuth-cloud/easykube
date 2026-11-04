@@ -8,7 +8,7 @@ from .errors import ApiError
 from .iterators import ListResponseIterator, WatchEvents
 
 
-class LabelSelectorSpecial(str, enum.Enum):
+class LabelSelectorSpecial(enum.StrEnum):
     """
     Enumeration of special label selectors.
     """
@@ -37,7 +37,7 @@ LabelSelectorValue = (
 )
 
 
-class DeletePropagationPolicy(str, enum.Enum):
+class DeletePropagationPolicy(enum.StrEnum):
     """
     Enumeration of possible delete policies.
     """

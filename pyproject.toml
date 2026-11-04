@@ -6,7 +6,7 @@ readme = "README.md"
 license = "Apache-2.0"
 license-files = ["LICENSE"]
 authors = [{ name = "Matt Pryor", email = "matt@stackhpc.com" }]
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 dependencies = [
     "certifi",
     "httpx>=0.23",
@@ -50,7 +50,7 @@ fallback-version = "0.0.1+unknown"
 
 [tool.ruff]
 line-length = 88
-target-version = "py310"
+target-version = "py311"
 
 [tool.ruff.lint]
 select = [

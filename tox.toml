@@ -1,7 +1,7 @@
 requires = ["tox>=4.65", "tox-uv>=1.36"]
 env_list = [
     "lint",
-    { prefix = "3.", start = 10, stop = 15 },
+    { prefix = "3.", start = 11, stop = 15 },
     "mypy",
     "coverage",
 ]
