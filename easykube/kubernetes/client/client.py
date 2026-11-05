@@ -1,10 +1,11 @@
+import collections.abc
+
 import httpx
 
 from ... import rest  # noqa: TID252
 from ...flow import flow  # noqa: TID252
 from .api import Api
 from .errors import ApiError
-import collections.abc
 
 
 class BaseClient:
