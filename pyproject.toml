@@ -26,8 +26,10 @@ dev = [
     "codespell>=2.4.3",
     "coverage>=7.16.2",
     "diff-cover>=10.6.0",
+    "looptime>=0.9",
     "mypy>=2.4.0",
     "pytest>=9",
+    "pytest-asyncio>=1.4.1",
     "pytest-cov>=7.1.0",
     "ruff>=0.17.3",
     "tox>=4.65.0",
@@ -105,9 +107,11 @@ max-complexity = 15
 [tool.pytest]
 testpaths = ["easykube/tests"]
 strict = true
+asyncio_default_fixture_loop_scope = "function"
 
 [tool.coverage.run]
 relative_files = true
+omit = ["easykube/tests/*"]
 
 [tool.codespell]
 skip = "./.tox,./.venv,./uv.lock,./coverage.xml"

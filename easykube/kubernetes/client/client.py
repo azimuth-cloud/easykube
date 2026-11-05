@@ -1,3 +1,5 @@
+import collections.abc
+
 import httpx
 
 from ... import rest  # noqa: TID252
@@ -17,11 +19,19 @@ class BaseClient:
         # This is the name of the field manager for server-side apply
         default_field_manager="easykube",
         default_namespace="default",
+        # A watch that receives no data for this many seconds is treated as dead
+        watch_inactivity_timeout=70.0,
+        # Ask the API server to end watches somewhere in this range.
+        watch_timeout_seconds=(300, 600),
         **kwargs,
     ):
         super().__init__(**kwargs)
         self.default_field_manager = default_field_manager
         self.default_namespace = default_namespace
+        self.watch_inactivity_timeout: float = watch_inactivity_timeout
+        self.watch_timeout_seconds: collections.abc.Sequence[int, int] = (
+            watch_timeout_seconds
+        )
         # Cache of API version -> API objects
         self.apis = {}
         # Cache of API group -> API version using preferred version
